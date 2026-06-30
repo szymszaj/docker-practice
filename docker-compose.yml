@@ -1,0 +1,14 @@
+services:
+  app:
+    # buduje image z lokalnego Dockerfile
+    build: .
+    # nazwa kontenera widoczna w Docker Desktop
+    container_name: docker-practice-app
+    # przekierowanie portów: localhost:3000 → kontener:3000
+    ports:
+      - "3000:3000"
+    # zmienne środowiskowe (można nadpisać domyślne)
+    environment:
+      - PORT=3000
+    # restartuje kontener jeśli się wyłączy
+    restart: unless-stopped
