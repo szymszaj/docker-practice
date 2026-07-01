@@ -1,0 +1,20 @@
+# To samo co .gitignore, ale dla build contextu Dockera.
+# Wszystko tutaj NIE trafia do obrazu → szybszy build i mniejszy, bezpieczniejszy image.
+
+# Zależności instalujemy WEWNĄTRZ obrazu (npm install), więc lokalne node_modules są zbędne
+node_modules
+npm-debug.log
+
+# Metadane gita — niepotrzebne w obrazie
+.git
+.gitignore
+
+# Pliki Dockera nie muszą kopiować samych siebie do kontenera
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Dokumentacja i śmieci systemowe
+*.md
+.DS_Store
+.env

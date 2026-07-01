@@ -1,7 +1,12 @@
-const http = require("http");
+const express = require("express");
 const os = require("os");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Prosty licznik odwiedzin — pokazuje, że kontener trzyma stan w pamięci
+// (i że po restarcie kontenera ten stan znika → dlatego później dodamy bazę/volume).
+let visits = 0;
 
 const html = `<!DOCTYPE html>
 <html lang="pl">
@@ -66,13 +71,14 @@ const html = `<!DOCTYPE html>
       font-size: 0.8rem;
       text-align: center;
     }
+    .footer a { color: #38bdf8; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="whale">🐳</div>
-    <h1>Hej! Docker działa!</h1>
-    <p class="subtitle">Ten serwer Node.js działa wewnątrz kontenera Dockera.</p>
+    <h1>Hej! Docker + Express działa!</h1>
+    <p class="subtitle">Ten serwer Express działa wewnątrz kontenera Dockera.</p>
     <span class="badge">✓ kontener aktywny</span>
     <div class="info-grid">
       <div class="info-row">
@@ -95,28 +101,45 @@ const html = `<!DOCTYPE html>
         <span class="label">Wersja Node.js</span>
         <span class="value">NODEVERSION</span>
       </div>
+      <div class="info-row">
+        <span class="label">Liczba odwiedzin</span>
+        <span class="value">VISITS</span>
+      </div>
     </div>
     <div class="footer">
-      Zmień kod w src/index.js → odbuduj image → zobacz zmiany 🚀
+      Sprawdź też <a href="/health">/health</a> · Zmień kod → odbuduj image → zobacz zmiany 🚀
     </div>
   </div>
 </body>
 </html>`;
 
-const server = http.createServer((req, res) => {
+// Strona główna
+app.get("/", (req, res) => {
+  visits++;
   const page = html
     .replace("HOSTNAME", os.hostname())
     .replace("PLATFORM", os.platform())
     .replace("ARCH", os.arch())
     .replace("PORTVAL", PORT)
-    .replace("NODEVERSION", process.version);
+    .replace("NODEVERSION", process.version)
+    .replace("VISITS", visits);
 
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-  res.end(page);
+  res.type("html").send(page);
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ Serwer działa na porcie ${PORT}`);
+// Endpoint zdrowia — używany przez HEALTHCHECK w Dockerfile.
+// Docker sam odpytuje ten URL i oznacza kontener jako healthy/unhealthy.
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    hostname: os.hostname(),
+    uptime: process.uptime(),
+    visits,
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Serwer Express działa na porcie ${PORT}`);
   console.log(`   Hostname: ${os.hostname()}`);
   console.log(`   Node: ${process.version}`);
 });

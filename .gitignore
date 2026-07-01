@@ -1,0 +1,10 @@
+# Zależności — instalowane przez `npm install`, nie trzymamy ich w gicie
+node_modules/
+npm-debug.log*
+
+# Zmienne środowiskowe / sekrety
+.env
+.env.local
+
+# Śmieci systemowe
+.DS_Store
